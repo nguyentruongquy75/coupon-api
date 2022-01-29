@@ -5,6 +5,37 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 
+app.get("/", (req, res) => {
+  request("https://magiamgia.com/").then((html) => {
+    const $ = cheerio.load(html);
+    const result = $("#polyxgo_offers_flexible")
+      .last()
+      .find(".offers-details")
+      .map((index, ele) => {
+        const discount = $(ele)
+          .find(".mgg-discount")
+          .text()
+          .slice(0, $(ele).find(".mgg-discount").text().indexOf("<"));
+        const logo =
+          "https://epz24x4zq6r.exactdn.com/wp-content/uploads/2020/12/ma-giam-gia-tiki.png?strip=all&lossy=1&w=1125&ssl=1";
+        const info = $(ele).find(".polyxgo_title").html();
+        const code = $(ele).find(".vc-mgg").text();
+        const link = $(ele).find(".cp-mgg").attr("onclick");
+
+        return {
+          discount,
+          logo,
+          info,
+          code,
+          link: link && link.slice(link.indexOf("http"), link.indexOf("')")),
+        };
+      })
+      .toArray();
+
+    res.json(result);
+  });
+});
+
 app.get("/tiki", (req, res) => {
   request("https://magiamgia.com/tiki/").then((html) => {
     const $ = cheerio.load(html);
